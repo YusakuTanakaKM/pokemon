@@ -1,4 +1,10 @@
 <script setup></script>
+const router = useRouter();
+const 
+
+
+
+
 
 <template>
   <div>
