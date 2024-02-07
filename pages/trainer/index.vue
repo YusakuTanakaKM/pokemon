@@ -4,6 +4,7 @@
 
 <template>
   <div>
+    <NuxtLink :to="`/`">TOPへ戻る</NuxtLink>
     <h1>つづきからはじめる</h1>
     <GamifyList>
       <GamifyItem v-for="trainer in trainers" :key="trainer">

@@ -7,7 +7,16 @@ import useDialog from '~/composables/useDialog';
 import trimAvoidCharacters from '~/utils/trimAvoidCharacters';
 
 const trainerName = ref("");
-const { dialog, onOpen, onClose } = useDialog();
+const {
+  dialog: createDialog,
+  onOpen: onOpenCreate,
+  onClose: onCloseCreate,
+} = useDialog();
+const {
+  dialog: errdialog,
+  onOpen: onOpenErr,
+  onClose: onCloseErr,
+} = useDialog();
 const transTrainerName = computed(() => trimAvoidCharacters(trainerName.value));
 const checkCharleng = computed(() => transTrainerName.value.length > 0);
 
@@ -25,9 +34,12 @@ const onNewTrainer = async()=>{
     }),
   }).catch((err) => err);
   if(response instanceof Error) {
-    onClose();
+    onCloseCreate();
+    console.log(response);
+//    onOpenErr(true); //エラー通知用のダイアログをここから自動表示できない？
     return;
   }
+  onCloseCreate();
   router.push(`/trainer/${transTrainerName.value}`);
 };
 
@@ -36,6 +48,7 @@ const onNewTrainer = async()=>{
 
 <template>
   <div>
+    <NuxtLink :to="`/`">TOPへ戻る</NuxtLink>
     <h1>あたらしくはじめる</h1>
     <p>こんにちは！新しいトレーナーさん！あなたの名前を教えてもらえますか？</p>
     <form @submit.prevent>
@@ -49,28 +62,36 @@ const onNewTrainer = async()=>{
         <input
           id="name"
           v-model="trainerName"
-          @keydown.enter="checkCharleng && onOpen(true)"
+          @keydown.enter="checkCharleng && onOpenCreate(true)"
         >
       </div>
-      <GamifyButton type="button" :disabled="!checkCharleng" @click="onOpen(true)">
+      <GamifyButton type="button" :disabled="!checkCharleng" @click="onOpenCreate(true)">
         決定
       </GamifyButton>
     </form>
     <GamifyDialog
-      v-if="dialog"
+      v-if="createDialog"
       id="confirm-newname"
       title="確認です"
       :description="`「${transTrainerName}」さんですね？`"
-      @close="onClose"
+      @close="onCloseCreate"
     >
       <GamifyList :border="false" direction="horizon">
         <GamifyItem>
           <GamifyButton @click="onNewTrainer">はい</GamifyButton>
         </GamifyItem>
         <GamifyItem>
-          <GamifyButton @click="onClose">いいえ</GamifyButton>
+          <GamifyButton @click="onCloseCreate">いいえ</GamifyButton>
         </GamifyItem>
       </GamifyList>
+    </GamifyDialog>
+    <GamifyDialog
+      v-if="errdialog"
+      id="error-message"
+      title="エラーが発生しました"
+      :description="トレーナーの作成に失敗しました"
+      @close="onCloseErr"
+    >
     </GamifyDialog>
   </div>
 </template>

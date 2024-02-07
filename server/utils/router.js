@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { findTrainers, upsertTrainer, findTrainer } from "~/server/utils/trainer";
+import { findTrainers, upsertTrainer, findTrainer, deleteTrainer } from "~/server/utils/trainer";
 import { findPokemon } from "~/server/utils/pokemon";
 
 const router = Router();
@@ -65,6 +65,15 @@ router.post("/trainer/:trainerName", async (req, res, next) => {
 
 /** トレーナーの削除 */
 // TODO: トレーナーを削除する API エンドポイントの実装
+router.delete("/trainer/:trainerName", async (req, res, next) => {
+  try {
+    const { trainerName } = req.params;
+    const result = await deleteTrainer(trainerName);
+    res.status(result["$metadata"].httpStatusCode).send(result);
+  } catch (err) {
+    next(err);
+  }
+});
 
 /** ポケモンの追加 */
 router.post("/trainer/:trainerName/pokemon", async (req, res, next) => {
@@ -82,5 +91,22 @@ router.post("/trainer/:trainerName/pokemon", async (req, res, next) => {
 
 /** ポケモンの削除 */
 // TODO: ポケモンを削除する API エンドポイントの実装
+router.delete(
+  "/trainer/:trainerName/pokemon/:pokemonId",
+  async (req, res, next) => {
+    try {
+      const { trainerName, pokemonId } = req.params;
+      const trainer = await findTrainer(trainerName);
+      const index = trainer.pokemons.findIndex(
+        (pokemon) => String(pokemon.id) === pokemonId,
+      );
+      trainer.pokemons.splice(index, 1);
+      const result = await upsertTrainer(trainerName, trainer);
+      res.status(result["$metadata"].httpStatusCode).send(result);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
 
 export default router;
